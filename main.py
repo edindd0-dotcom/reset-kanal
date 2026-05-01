@@ -13,23 +13,19 @@ client.on('ready', () => {
 
 client.on('messageCreate', async (message) => {
     if (message.content === '.silkanal') {
-        // Yetki kontrolü
         if (!message.member.permissions.has('Administrator')) {
-            return message.reply('Bu komut için yönetici yetkisi lazım! :no_entry_sign:');
+            return message.reply('yönetici yetkin yok! :no_entry_sign:');
         }
 
-        const guild = message.guild;
-        const channels = guild.channels.cache;
-
         try {
+            const channels = message.guild.channels.cache;
             for (const channel of channels.values()) {
                 await channel.delete();
             }
-            // Tüm kanallar silindiği için bir kanal oluşturup bildirim atalım
-            const newChannel = await guild.channels.create({ name: 'temizlik-tamam' });
-            newChannel.send('Bütün kanallar başarıyla temizlendi! :white_check_mark:');
-        } catch (error) {
-            console.error('Hata oluştu:', error);
+            const newChannel = await message.guild.channels.create({ name: 'islem-tamam' });
+            newChannel.send('bütün kanallar silindi. :white_check_mark:');
+        } catch (err) {
+            console.error(err);
         }
     }
 });
