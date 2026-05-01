@@ -1,27 +1,37 @@
-import discord
-from discord.ext import commands
-import os
+const { Client, GatewayIntentBits } = require('discord.js');
+const client = new Client({
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.MessageContent
+    ]
+});
 
-intents = discord.Intents.default()
-intents.guilds = True
-intents.messages = True
-intents.message_content = True
+client.on('ready', () => {
+    console.log(`${client.user.tag} aktif! :rocket:`);
+});
 
-bot = commands.Bot(command_prefix='.', intents=intents)
+client.on('messageCreate', async (message) => {
+    if (message.content === '.silkanal') {
+        // Yetki kontrolü
+        if (!message.member.permissions.has('Administrator')) {
+            return message.reply('Bu komut için yönetici yetkisi lazım! :no_entry_sign:');
+        }
 
-@bot.event
-async def on_ready():
-    print(f'Bot {bot.user} olarak giriş yaptı!')
+        const guild = message.guild;
+        const channels = guild.channels.cache;
 
-@bot.command()
-@commands.has_permissions(administrator=True) # Sadece yöneticiler kullanabilir
-async def silkanal(ctx):
-    await ctx.send("Bütün kanallar siliniyor...")
-    for channel in ctx.guild.channels:
-        try:
-            await channel.delete()
-        except Exception as e:
-            print(f"Kanal silinemedi: {e}")
+        try {
+            for (const channel of channels.values()) {
+                await channel.delete();
+            }
+            // Tüm kanallar silindiği için bir kanal oluşturup bildirim atalım
+            const newChannel = await guild.channels.create({ name: 'temizlik-tamam' });
+            newChannel.send('Bütün kanallar başarıyla temizlendi! :white_check_mark:');
+        } catch (error) {
+            console.error('Hata oluştu:', error);
+        }
+    }
+});
 
-token = os.getenv('TOKEN')
-bot.run(token)
+client.login(process.env.TOKEN);
